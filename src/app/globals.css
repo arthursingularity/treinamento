@@ -1,33 +1,52 @@
 @import "tailwindcss";
 
+/* ===== Design Tokens (CSS Variables) ===== */
 :root {
-  --background: #f5f5f7;
+  --background: #e8e8ec;
   --foreground: #1d1d1f;
   --card-bg: #ffffff;
   --sidebar-bg: #f5f5f7;
   --border: rgba(0, 0, 0, 0.08);
   --separator: rgba(0, 0, 0, 0.06);
   --text-secondary: #86868b;
-  --accent: #007AFF;
-  --accent-hover: #0071e3;
-  --row-hover: rgba(0, 122, 255, 0.06);
-  --row-alt: rgba(0, 0, 0, 0.02);
-  --badge-bg: rgba(0, 122, 255, 0.08);
-  --badge-text: #007AFF;
+  --accent: #0079B8;
+  --accentLight: #3DADFA;
+  --accentDark: #004064;
+  --row-hover: rgba(0, 0, 0, 0.08);
+  --row-alt: rgba(0, 0, 0, 0.025);
+  --row-selected-bg: #007AFF;
+  --row-selected-text: #ffffff;
   --window-close: #ff5f57;
   --window-minimize: #febc2e;
   --window-zoom: #28c840;
+  --toolbar-border: rgba(0, 0, 0, 0.178);
+  --status-bar-bg: #f0f0f2;
 }
 
 @theme inline {
+  --color-accent: var(--accent);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* ===== Global Resets ===== */
 * {
   box-sizing: border-box;
+}
+
+svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -37,4 +56,321 @@ body {
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* ===== Reusable: Toolbar Button ===== */
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 16px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #444;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  background-color: var(--accent);
+  color: white;
+  border-color: rgba(0, 122, 255, 0.15);
+}
+
+.toolbar-btn:active {
+  background-color: #004064;
+  transform: scale(0.97);
+}
+
+.toolbar-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.toolbar-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.toolbar-btn.primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.toolbar-btn.secondary {
+  border: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+.toolbar-btn.secondary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.toolbar-btn.danger {
+  color: #ff3b30;
+}
+
+.toolbar-btn.danger:hover {
+  background: rgba(255, 59, 48, 0.08);
+  border-color: rgba(255, 59, 48, 0.15);
+  color: #ff3b30;
+}
+
+/* ===== Reusable: Tab Item ===== */
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: black;
+  background-color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  border: 1px solid var(--accentDark);
+}
+
+.tab-item:hover {
+  background-color: #bbbbbb;
+}
+
+.tab-item.active {
+  background-color: #004064;
+  color: white;
+  font-weight: 600;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== Reusable: Data Table (complex pseudo-selectors + gradients) ===== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.data-table thead th {
+  padding: 7px 10px;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: black;
+  background: linear-gradient(180deg, #f7f7f9 0%, #ededf0 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+
+.data-table thead th:last-child {
+  border-right: none;
+}
+
+.data-table thead th:hover {
+  background: linear-gradient(180deg, #f0f0f3 0%, #e6e6ea 100%);
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  cursor: default;
+  transition: background-color 0.1s ease;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: var(--row-alt);
+}
+
+.data-table tbody tr:hover {
+  background: var(--row-hover);
+}
+
+.data-table tbody tr.selected {
+  background: var(--row-selected-bg) !important;
+  color: var(--row-selected-text) !important;
+}
+
+.data-table tbody tr.selected td {
+  color: var(--row-selected-text) !important;
+}
+
+.data-table tbody td:last-child {
+  border-right: none;
+}
+
+.data-table .num {
+  text-align: right;
+  font-family: var(--font-inter), 'SF Mono', 'Menlo', monospace;
+  font-size: 11.5px;
+}
+
+.data-table .row-check {
+  width: 32px;
+  text-align: center;
+  padding: 4px 6px;
+}
+
+.data-table .row-check input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+/* ===== Reusable: Search Input (focus-within not in tailwind) ===== */
+.search-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.2s;
+}
+
+.search-input:focus-within {
+  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+}
+
+.search-input input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  color: var(--foreground);
+  width: 160px;
+}
+
+.search-input input::placeholder {
+  color: #aaa;
+}
+
+.search-input svg {
+  width: 14px;
+  height: 14px;
+  color: #aaa;
+}
+
+/* ===== Reusable: Status Bar kbd ===== */
+.status-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  color: #666;
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton-bar {
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 25%, rgba(0, 0, 0, 0.1) 37%, rgba(0, 0, 0, 0.06) 63%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ===== Scrollbar ===== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
 }
