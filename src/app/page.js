@@ -1,214 +1,95 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import DataTable from '@/components/DataTable';
-import ModalIncluirProduto from '@/components/ModalIncluirProduto';
-
-/* ─── Mock data – Ordens de Serviço ─── */
-const MOCK_OS = [
-  { NUM: 'OS000057', FILA: '001', EQUIPAMENTO: 'ALB.014', DESCRICAO_BEM: 'ALIM. Nº30- IEMCA(TORNEARIA)', LOCALIZACAO: 'MONT GUARNICOES', TIPO_SOLIC: 'MANUTENÇÃO ELÉTRICA', MANUTENCAO: 'CORRETIVA', OBSERVACAO: '', PRIORIDADE: 'URGENTE', TECNICO: 'MARCOS FERREIRA', ABERTURA: '23/02/26, 15:32', SOLICITANTE: 'MARCELOF' },
-  { NUM: 'OS000039', FILA: '002', EQUIPAMENTO: 'RET.045', DESCRICAO_BEM: 'RETIFICADOR Nº46 R.C.V 1500A', LOCALIZACAO: 'MONT FECHADURAS A', TIPO_SOLIC: 'MANUTENÇÃO ELÉTRICA', MANUTENCAO: 'CORRETIVA', OBSERVACAO: 'ENGRENAGEM PAROU', PRIORIDADE: 'ALTA', TECNICO: 'CARLOS SANTOS', ABERTURA: '09/01/26, 23:47', SOLICITANTE: 'ARTHURM' },
-  { NUM: 'OS000036', FILA: '020', EQUIPAMENTO: 'RET.045', DESCRICAO_BEM: 'RETIFICADOR Nº46 R.C.V 1500A', LOCALIZACAO: 'MONT FECHADURAS A', TIPO_SOLIC: 'MANUTENÇÃO ELÉTRICA', MANUTENCAO: 'CORRETIVA', OBSERVACAO: '', PRIORIDADE: 'NORMAL', TECNICO: '', ABERTURA: '09/01/26, 15:26', SOLICITANTE: 'ARTHURM' },
-  { NUM: 'OS000058', FILA: '', EQUIPAMENTO: 'ALB.010', DESCRICAO_BEM: 'ALIM. Nº33 -AKUFEED(TORNEARIA)', LOCALIZACAO: 'MONT GUARNICOES', TIPO_SOLIC: 'MANUTENÇÃO ELÉTRICA', MANUTENCAO: '', OBSERVACAO: 'TESTE DESENVOLVIMENTO', PRIORIDADE: 'BAIXA', TECNICO: 'JOÃO SILVA', ABERTURA: '27/02/26, 16:47', SOLICITANTE: 'LOGANF' },
-  { NUM: 'OS000052', FILA: '001', EQUIPAMENTO: 'ALC.014', DESCRICAO_BEM: 'ALIM. ELET. SETREMA Nº14 (AGOST. Nº17)', LOCALIZACAO: 'MONT GUARNICOES', TIPO_SOLIC: 'MANUTENÇÃO ELÉTRICA', MANUTENCAO: 'PREVENTIVA', OBSERVACAO: 'FIO ARREBENTADO', PRIORIDADE: 'MUITO_BAIXA', TECNICO: 'JOÃO SILVA', ABERTURA: '13/02/26, 14:10', SOLICITANTE: 'ARTHURM' },
-];
-
-/* ─── Column definitions ─── */
-const COLUMNS = [
-  { key: 'STATUS', label: '', width: '20px' },
-  { key: 'NUM', label: 'Nº', width: '90px' },
-  { key: 'FILA', label: 'Fila', width: '45px' },
-  { key: 'EQUIPAMENTO', label: 'Equipamento/Bem', width: '120px' },
-  { key: 'DESCRICAO_BEM', label: 'Descrição do Bem', width: 'auto', minWidth: '220px' },
-  { key: 'LOCALIZACAO', label: 'Localização', width: '160px' },
-  { key: 'TIPO_SOLIC', label: 'Tipo de Solicitação', width: '160px' },
-  { key: 'MANUTENCAO', label: 'Manutenção', width: '110px' },
-  { key: 'OBSERVACAO', label: 'Observação', width: '200px' },
-  { key: 'PRIORIDADE', label: 'Prioridade', width: '90px' },
-  { key: 'TECNICO', label: 'Técnico Responsável', width: '140px' },
-  { key: 'ABERTURA', label: 'Abertura', width: '120px' },
-  { key: 'SOLICITANTE', label: 'Solicitante', width: '100px' },
-];
-
-/* ─── Priority color map ─── */
-const PRIORIDADE_COLORS = {
-  URGENTE: 'text-red-600',
-  ALTA: 'text-orange-500',
-};
-
-/* ─── Status dot colors (macOS traffic lights) ─── */
-const STATUS_DOT = {
-  URGENTE: '#ff5f57',
-  ALTA: '#febc2e',
-  NORMAL: '#28c840',
-  BAIXA: '#49A7F4',
-  MUITO_BAIXA: '#b6b6b6ff',
-};
-
-/* ─── Manutenção badge styles ─── */
-const MANUTENCAO_STYLES = {
-  CORRETIVA: 'text-orange-700',
-  PREVENTIVA: 'text-green-700',
-};
-
-const TABS = [
-  { id: 1, label: 'Controle Geral Produção [02.9.0004]', active: true },
-  { id: 2, label: 'Transferência Múltipla [02.9.0004]' },
-  { id: 3, label: 'Projeto Competir [02.9.0004]' },
-  { id: 4, label: 'Apontar Produção [02.9.0004]' },
-];
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [ordens, setOrdens] = useState(MOCK_OS);
-  const [selectedId, setSelectedId] = useState(null);
-  const [searchText, setSearchText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showModalIncluir, setShowModalIncluir] = useState(false);
+  const [ordensInfo, setOrdensInfo] = useState([])
 
   useEffect(() => {
-    async function buscarOS() {
-      try {
-        setIsLoading(true);
-        const resposta = await fetch('/api/produtos');
-        const dados = await resposta.json();
-        if (Array.isArray(dados) && dados.length > 0) {
-          // Keep API integration ready
-        }
-      } catch {
-        // keep mock data on error
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    buscarOS();
-  }, []);
+    async function buscarOrdens() {
+      const res = await fetch('/api/ordens')
 
-  /* ── Filtering (search) ── */
-  const filteredOrdens = useMemo(() => {
-    if (!searchText.trim()) return ordens;
-    const term = searchText.toLowerCase();
-    return ordens.filter(
-      (os) =>
-        os.NUM?.toLowerCase().includes(term) ||
-        os.DESCRICAO_BEM?.toLowerCase().includes(term) ||
-        os.EQUIPAMENTO?.toLowerCase().includes(term) ||
-        os.TECNICO?.toLowerCase().includes(term) ||
-        os.OBSERVACAO?.toLowerCase().includes(term)
-    );
-  }, [ordens, searchText]);
+      const data = await res.json()
 
-  /* ── Custom cell rendering for colored badges ── */
-  const renderCell = (row, col, value) => {
-    if (col.key === 'STATUS') {
-      const color = STATUS_DOT[row.PRIORIDADE] || '#28c840';
-      return (
-        <div className="flex items-center justify-center">
-          <span
-            className="inline-block w-[14px] h-[14px] rounded-full flex items-center justify-center"
-            style={{ backgroundColor: color }}
-          />
-        </div>
-      );
+      const dadosOrdenados = data.sort((a, b) => Number(a.TJ_PRIOR) - Number(b.TJ_PRIOR));
+
+      setOrdensInfo(dadosOrdenados)
     }
-    if (col.key === 'PRIORIDADE' && value) {
-      const colorClass = PRIORIDADE_COLORS[value] || 'text-black';
-      return <span className={colorClass}>{value}</span>;
-    }
-    return null;
-  };
+
+    buscarOrdens()
+  }, [])
 
   return (
-    <div className="animate-fade-in h-dvh flex flex-col">
+    <div className="p-4 bg-neutral-200 min-h-screen w-full flex flex-col gap-4">
+      {ordensInfo.length === 0 && (
+        <div className="text-center text-neutral-500 mt-10">
+          Nenhuma ordem de serviço encontrada.
+        </div>
+      )}
 
-      {/* ── Window Shell ── */}
-      <div className="flex-1 flex flex-col bg-white border border-[var(--border)] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]">
+      {ordensInfo.map((ordem, index) => (
+        <div key={index} className="bg-white w-full rounded-3xl p-4 shadow-lg">
 
-        {/* ── Title Bar ── */}
-        <div className="flex items-center px-[2px] py-[2px] bg-[#0079B8] border-b border-black/10 select-none">
-          <div className="flex gap-[2px] flex-1 overflow-x-auto">
-            {TABS.map((tab) => (
-              <div key={tab.id} className={`tab-item ${tab.active ? 'active' : ''}`}>
-                {tab.label}
-                <span className="text-sm leading-none text-gray-400 cursor-pointer ml-1 rounded-sm w-4 h-4 flex items-center justify-center transition-all hover:bg-black/10 hover:text-gray-700">×</span>
+          <div className="flex justify-between items-center">
+            <div className="leading-[1.1]">
+              <h2 className="font-semibold text-[25px] text-black">
+                OS{ordem.TJ_ORDEM}
+              </h2>
+              <p className="text-[12px] font-medium text-neutral-500">
+                {ordem.TJ_TIPOMAN || "TIPO NÃO INFORMADO"}
+              </p>
+            </div>
+            <div className={`rounded-2xl w-[120px] py-1 h-[33px] flex justify-center items-center ${
+                ordem.TJ_STATUS === 'ANDAMENTO' ? 'bg-green-500 text-white' :
+                ordem.TJ_STATUS === 'NA FILA' ? 'bg-blue-500 text-white' :
+                ordem.TJ_STATUS === 'PAUSADA' ? 'bg-orange-200 text-orange-500' : 'bg-neutral-200 text-neutral-600'}`}>
+              <p className="font-semibold text-[13px]">
+                {ordem.TJ_STATUS}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-neutral-200/40 border border-neutral-300 space-y-3 rounded-2xl p-4 pt-3 mt-4 relative">
+            <div className="w-[60px] h-[27px] flex justify-center items-center bg-neutral-300 absolute top-0 right-0 rounded-tr-[14px] rounded-bl-2xl">
+              <p className="font-medium text-neutral-500">{ordem.TJ_PRIOR}</p>
+            </div>
+            <div className="space-y-[4px]">
+              <p className="text-neutral-800 font-semibold text-[14px]">Localização:</p>
+              <div className="leading-[1.15]">
+                <p className="font-semibold text-black text-[14px] uppercase">{ordem.TJ_SETOR}</p>
+                <p className="font-medium text-neutral-500/80 text-[14px] uppercase">{ordem.TJ_FILIAL}</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Header Info ── */}
-        <div className="flex items-center justify-between px-4 py-2 bg-[var(--sidebar-bg)] border-b border-[var(--separator)] text-xs">
-          <div className="flex items-center gap-2">
-            <img src='/imagens/logo.svg' className='w-[55px]' />
-            <span className="text-sm font-medium text-[var(--foreground)]">| Manutenção</span>
-          </div>
-          <div className="flex items-center gap-4 text-[13px] text-[var(--text-secondary)]">
-            <span className="font-semibold">ARTHURM</span>
-            <button className="toolbar-btn danger" id="btn-sair">Sair</button>
-          </div>
-        </div>
-
-        {/* ── Subtitle Bar ── */}
-        <div className="px-4 py-2 bg-neutral-700 border-b border-black/8 text-xs font-medium text-white">
-          <strong>Gerenciamento OS</strong> &nbsp;–&nbsp; Setor: <strong className="ml-1">MONT FECHADURAS C</strong> &nbsp;–&nbsp; C.Custo: <strong className="ml-1">317111</strong>
-        </div>
-
-        {/* ── Toolbar ── */}
-        <div className="animate-slide-down flex items-center gap-[1px] px-[1px] py-[2px] bg-gradient-to-b from-[#fafafa] to-[#f0f0f2] border-b border-[var(--toolbar-border)] overflow-x-auto flex-wrap">
-          <button className="toolbar-btn secondary" id="btn-incluir" onClick={() => setShowModalIncluir(true)}>Incluir Produto</button>
-          <button className="toolbar-btn secondary" id="btn-alterar">Alterar OS</button>
-          <button className="toolbar-btn secondary" id="btn-situacao">Atribuir</button>
-          <button className="toolbar-btn secondary" id="btn-inventario">Filtro <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width={15} height={15}><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg></button>
-          <button className="toolbar-btn secondary" id="btn-apontamento">Legenda <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width={15} height={15}><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg></button>
-          <button className="toolbar-btn secondary" id="btn-necessidades">Atualizar</button>
-        </div>
-
-        {/* ── Data Table ── */}
-        <DataTable
-          columns={COLUMNS}
-          data={filteredOrdens}
-          isLoading={isLoading}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          idKey="NUM"
-          renderCell={renderCell}
-        />
-
-        {/* ── Status Bar ── */}
-        <div className="flex items-center justify-between px-4 py-1.5 bg-[var(--status-bar-bg)] border-t border-black/8 text-[11px] text-[var(--text-secondary)]">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <kbd className="status-kbd">F4</kbd>
-              <span>Saldo nos Almoxarifados</span>
             </div>
-            <div className="flex items-center gap-1">
-              <kbd className="status-kbd">F6</kbd>
-              <span>Estrutura</span>
+            <hr className="border-neutral-300" />
+            <div className="space-y-[4px]">
+              <p className="text-neutral-800 font-semibold text-[14px]">Recurso/Bem:</p>
+              <div className="leading-[1.15]">
+                <p className="font-semibold text-black text-[14px] uppercase">{ordem.TJ_DESCBEM}</p>
+                <p className="font-medium text-neutral-500/80 text-[14px] uppercase">{ordem.TJ_CODBEM}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <kbd className="status-kbd">F8</kbd>
-              <span>Histórico</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="status-kbd">F12</kbd>
-              <span>Imprimir</span>
+            <hr className="border-neutral-300" />
+
+            <div className="space-y-[4px]">
+              <p className="text-neutral-800 font-semibold text-[14px]">Observação:</p>
+              <div className="leading-[1.15]">
+                <p className="font-semibold text-black text-[14px] uppercase">
+                  {ordem.TJ_OBS || "-"}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span>{filteredOrdens.length} ordens</span>
-            {selectedId && (
-              <span className="font-medium text-[var(--accent)]">
-                Selecionado: {selectedId}
-              </span>
-            )}
+
+          <div className="flex justify-between mt-4 space-x-4">
+            <button className="bg-neutral-300/70 hover:bg-neutral-300 transition-colors rounded-2xl py-[10px] w-[60%] text-black font-medium">
+              Editar Fila
+            </button>
+            <button className="bg-blue-400 hover:bg-blue-500 transition-colors rounded-2xl w-full text-white">
+              Ver detalhes
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* ── Modal: Incluir Produto ── */}
-      <ModalIncluirProduto
-        isOpen={showModalIncluir}
-        onClose={() => setShowModalIncluir(false)}
-      />
+      ))}
     </div>
   );
 }
