@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 export default function Historico() {
     const [ordemInfo, setOrdemInfo] = useState([])
     const [detailedInfo, setDetailedInfo] = useState(false)
+    const [value, setValue] = useState("")
+    const [divVisible, setDivVisible] = useState(false)
+    const menuRef = useRef(null);
 
     useEffect(() => {
         async function fetchOrdens() {
@@ -15,11 +18,25 @@ export default function Historico() {
 
             const data = await res.json()
 
-            setOrdemInfo(data)
+            const sortedData = data.sort((b, a) => {
+                return b.TJ_ORDEM.localeCompare(a.TJ_ORDEM, undefined, { numeric: true });
+            });
+
+            setOrdemInfo(sortedData)
         }
 
         fetchOrdens()
     }, [])
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setDivVisible(false)
+            }
+        }
+        if (divVisible) {document.addEventListener("mousedown", handleClickOutside)}
+        return () => {document.removeEventListener("mousedown", handleClickOutside)}
+    }, [divVisible])
 
     const handleDetailedInfo = (index) => {
         if (detailedInfo === index) {
@@ -29,9 +46,13 @@ export default function Historico() {
         }
     }
 
+    const handleDivVisible = () => {
+        setDivVisible(!divVisible)
+    }
+
     return (
         <div className="p-4">
-            <div className="bg-white rounded-2xl p-4">
+            <div className="bg-white hidden rounded-2xl p-4">
                 {ordemInfo.map((os, index) => (
                     <div key={index} className="space-y-3">
                         <div className="space-y-2">
@@ -40,10 +61,9 @@ export default function Historico() {
                                 className="flex items-center justify-between cursor-pointer"
                             >
                                 <div className="flex space-x-2 items-center">
-                                    <div className={`w-[14px] h-[14px] rounded-full ${
-                                        os.TJ_STATUS === 'ANDAMENTO' ? 'bg-green-400' :
+                                    <div className={`w-[14px] h-[14px] rounded-full ${os.TJ_STATUS === 'ANDAMENTO' ? 'bg-green-400' :
                                         os.TJ_STATUS === 'NA FILA' ? 'bg-blue-400' :
-                                        os.TJ_STATUS === 'CONCLUIDA' ? 'bg-neutral-300' : ''
+                                            os.TJ_STATUS === 'CONCLUIDA' ? 'bg-neutral-300' : ''
                                         }`}></div>
                                     <p className="text-black font-semibold">OS{os.TJ_ORDEM}</p>
                                 </div>
@@ -91,6 +111,36 @@ export default function Historico() {
                         )}
                     </div>
                 ))}
+            </div>
+            <div>
+                <input
+                    type="text"
+                    value={value}
+                    onClick={handleDivVisible}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder="Digite o número da OS"
+                    className="border mt-2 rounded-lg"
+                />
+
+                {divVisible && (
+                    <div
+                        ref={menuRef}
+                        className="bg-red-500 mt-2 text-white"
+                    >
+                        {ordemInfo.map((os, index) => (
+                            <p
+                                key={index}
+                                className="cursor-pointer p-2 hover:bg-red-600"
+                                onClick={() => {
+                                    setValue(os.TJ_ORDEM);
+                                    handleDivVisible();
+                                }}
+                            >
+                                {os.TJ_ORDEM}
+                            </p>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     )
