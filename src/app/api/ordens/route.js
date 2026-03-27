@@ -26,33 +26,27 @@ export async function POST(request) {
   try {
     const body = await request.json()
 
-    const { filial, setor, codBem, descBem, status, tipoMan, obs } = body
+    const { produto, descricao } = body
 
     const pool = await getPool()
 
     await pool.request()
-      .input('filial', filial)
-      .input('setor', setor)
-      .input('codBem', codBem)
-      .input('descBem', descBem)
-      .input('status', status)
-      .input('tipoMan', tipoMan)
-      .input('obs', obs)
+      .input('produto', produto)
+      .input('descricao', descricao)
       .query(`
-        INSERT INTO STJ010
-          (TJ_FILIAL, TJ_SETOR, TJ_CODBEM, TJ_DESCBEM, TJ_STATUS, TJ_TIPOMAN, TJ_OBS, TJ_PRIOR)
-        VALUES
-          (@filial, @setor, @codBem, @descBem, @status, @tipoMan, @obs, '999')
-    `)
+        INSERT INTO PRODUTOS (PRODUTO, DESCRICAO) VALUES (@produto, @descricao)  
+      `)
 
     return NextResponse.json(
-      { message: 'OS gerada com sucesso!' }
+      { message: 'Produto cadastrado com sucesso!' },
+      { status: 201 }
     )
+
   } catch (error) {
-    console.error('Erro interno no servidor:', error)
+    console.error('Erro ao cadastrar produto:', error)
 
     return NextResponse.json(
-      { message: 'Erro interno no servidor.' },
+      { error: 'Erro interno ao cadastrar produto.' },
       { status: 500 }
     )
   }
