@@ -7,8 +7,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Produtos - Sistema",
-  description: "Sistema de gestão de produtos",
+  title: "Crypto Panel — Mercado em Tempo Real",
+  description: "Painel de mercado cripto com gráficos TradingView, mapa de liquidação e long/short ratio",
 };
 
 export default function RootLayout({ children }) {

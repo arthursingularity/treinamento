@@ -2,11 +2,30 @@
 
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --color-stamOrange: #FF6600;
-  }
+@theme {
+  --color-dark-base: #0A0A0F;
+  --color-dark-surface: #1C1C1E;
+  --color-dark-card: rgba(44, 44, 46, 0.7);
+  --color-dark-header: rgba(28, 28, 30, 0.75);
+  --color-dark-bottom: rgba(28, 28, 30, 0.85);
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-card: rgba(255, 255, 255, 0.08);
 
+  --color-ios-blue: #007AFF;
+  --color-ios-green: #30D158;
+  --color-ios-orange: #FF9F0A;
+  --color-ios-red: #FF3B30;
+  --color-ios-gray: #8E8E93;
+
+  --color-maint-bg: rgba(255, 159, 10, 0.12);
+  --color-maint-border: rgba(255, 159, 10, 0.2);
+  --color-maint-badge: rgba(255, 159, 10, 0.15);
+  --color-complete-bg: rgba(48, 209, 88, 0.12);
+  --color-complete-border: rgba(48, 209, 88, 0.2);
+  --color-complete-badge: rgba(48, 209, 88, 0.15);
+}
+
+@layer base {
   * {
     margin: 0;
     padding: 0;
@@ -14,7 +33,7 @@
   }
 
   body {
-    background-color: #000000;
+    background-color: #0A0A0F;
     color: #ffffff;
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     overflow-x: hidden;
@@ -23,10 +42,46 @@
   }
 }
 
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+/* Custom utilities for backdrop-filter and gradient overlays */
+@layer utilities {
+  .glass-blur {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .gradient-dark {
+    background: linear-gradient(180deg, #0A0A0F 0%, #1C1C1E 100%);
+  }
+
+  .gradient-fade-up {
+    background: linear-gradient(to top, rgba(28, 28, 30, 0.95) 0%, transparent 100%);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 8px rgba(48, 209, 88, 0.6);
+  }
+
+  .glow-orange {
+    box-shadow: 0 0 8px rgba(255, 159, 10, 0.6);
+  }
+
+  .shadow-maint {
+    box-shadow: 0 4px 20px rgba(255, 159, 10, 0.3);
+  }
+
+  .shadow-complete {
+    box-shadow: 0 4px 20px rgba(48, 209, 88, 0.3);
+  }
+
+  .tracking-tight-ios {
+    letter-spacing: -0.3px;
+  }
+
+  .tracking-wide-ios {
+    letter-spacing: 0.5px;
+  }
+
+  .tracking-btn {
+    letter-spacing: -0.2px;
+  }
 }
