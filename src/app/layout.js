@@ -7,8 +7,15 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Crypto Panel — Mercado em Tempo Real",
-  description: "Painel de mercado cripto com gráficos TradingView, mapa de liquidação e long/short ratio",
+  title: "Prototipo - System",
+  description: "Prototipo - System",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }) {
