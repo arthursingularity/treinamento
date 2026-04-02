@@ -6,21 +6,28 @@ import { OrbitControls, Environment, ContactShadows, useGLTF, Center } from "@re
 import * as THREE from "three";
 
 /* ──────────────────────────────────────────────
-   Product Database — each product is stored in a CUBO
+   Product Database — each product is stored in a location address
+   Addresses match GLB collection names: 05D22N1 … 05D24N3
    ────────────────────────────────────────────── */
 const PRODUCTS = [
-  { id: 1, name: "CAIXA 601", code: "MTR-001", cubo: "CUBO1" },
-  { id: 2, name: "ESPELHO 501", code: "ROL-002", cubo: "CUBO1" },
-  { id: 3, name: "CILINDRO 501 GORJE", code: "COR-003", cubo: "CUBO2" },
-  { id: 4, name: "TAMBOR 1001", code: "SEN-004", cubo: "CUBO2" },
-  { id: 5, name: "TAMBOR 1002", code: "VLV-005", cubo: "CUBO3" },
-  { id: 6, name: "TAMPA 701/100", code: "CIL-006", cubo: "CUBO3" },
-  { id: 7, name: "CAIXA 501", code: "FUS-007", cubo: "CUBO4" },
-  { id: 8, name: "ARRUELA FECHAMENTO 500", code: "CNT-008", cubo: "CUBO4" },
-  { id: 9, name: "TAMBOR 1006", code: "RLT-009", cubo: "CUBO5" },
-  { id: 10, name: "TAMBOR 1007", code: "DJT-010", cubo: "CUBO5" },
-  { id: 11, name: "TAMBOR 1008", code: "MNG-011", cubo: "CUBO6" },
-  { id: 12, name: "TAMBOR 1009", code: "FLT-012", cubo: "CUBO6" },
+  { id: 1, name: "CAIXA 601",              code: "MTR-001", cubo: "05D22N1", saldo: "1000", qtdporcx: "100" },
+  { id: 2, name: "ESPELHO 501",            code: "ROL-002", cubo: "05D22N1", saldo: "150", qtdporcx: "30" },
+  { id: 3, name: "CILINDRO 501 GORJE",     code: "COR-003", cubo: "05D22N2", saldo: "800", qtdporcx: "40" },
+  { id: 4, name: "TAMBOR 1001",            code: "SEN-004", cubo: "05D22N2", saldo: "50", qtdporcx: "5" },
+  { id: 5, name: "TAMBOR 1002",            code: "VLV-005", cubo: "05D22N3", saldo: "200", qtdporcx: "100" },
+  { id: 6, name: "TAMPA 701/100",          code: "CIL-006", cubo: "05D22N3", saldo: "450", qtdporcx: "100" },
+  { id: 7, name: "CAIXA 501",              code: "FUS-007", cubo: "05D23N1", saldo: "1200", qtdporcx: "60" },
+  { id: 8, name: "ARRUELA FECHAMENTO 500", code: "CNT-008", cubo: "05D23N1", saldo: "5000", qtdporcx: "500" },
+  { id: 9, name: "TAMBOR 1006",            code: "RLT-009", cubo: "05D23N2", saldo: "20", qtdporcx: "1" },
+  { id: 10, name: "TAMBOR 1007",           code: "DJT-010", cubo: "05D23N2", saldo: "30", qtdporcx: "15" },
+  { id: 11, name: "TAMBOR 1008",           code: "MNG-011", cubo: "05D23N3", saldo: "60", qtdporcx: "3" },
+  { id: 12, name: "TAMBOR 1009",           code: "FLT-012", cubo: "05D23N3", saldo: "100", qtdporcx: "10" },
+  { id: 13, name: "ROLAMENTO 6205",        code: "RLM-013", cubo: "05D24N1", saldo: "300", qtdporcx: "20" },
+  { id: 14, name: "RETENTOR 50X72",        code: "RTN-014", cubo: "05D24N1", saldo: "500", qtdporcx: "100" },
+  { id: 15, name: "CORREIA A-68",          code: "CRR-015", cubo: "05D24N2", saldo: "150", qtdporcx: "10" },
+  { id: 16, name: "BUCHA BRONZE 25MM",     code: "BCH-016", cubo: "05D24N2", saldo: "800", qtdporcx: "40" },
+  { id: 17, name: "ANEL O-RING 45MM",      code: "ANL-017", cubo: "05D24N3", saldo: "2000", qtdporcx: "100" },
+  { id: 18, name: "GAXETA VEDAÇÃO 30MM",   code: "GXT-018", cubo: "05D24N3", saldo: "400", qtdporcx: "20" },
 ];
 
 /* ──────────────────────────────────────────────
@@ -42,9 +49,77 @@ function useIsMobile(breakpoint = 640) {
 }
 
 /* ──────────────────────────────────────────────
-   3D Rack Model — loads estoque.glb and highlights cubes
+   GLB Hierarchy:
+   Scene
+     ├─ 05D22N1  (group, 35 CB children)
+     │    ├─ CB1..CB10   → pallet structure (always visible)
+     │    ├─ CB11..CB35  → 25 box slots
+     ├─ 05D22N2, 05D22N3, 05D23N1-N3, 05D24N1-N3 (same pattern)
+     ├─ ESTRUTURA [mesh] (rack)
+     └─ FLOOR [mesh]
    ────────────────────────────────────────────── */
-function RackModel({ highlightedCubo }) {
+
+/** Walk up the Object3D tree to find an ancestor with the given name */
+function hasAncestorNamed(obj, name) {
+  if (!name) return false;
+  const upper = name.toUpperCase();
+  let current = obj.parent;
+  while (current) {
+    if (current.name?.toUpperCase() === upper) return true;
+    current = current.parent;
+  }
+  return false;
+}
+
+/** Get the parent group name (address) for a mesh */
+function getParentAddress(obj) {
+  let current = obj.parent;
+  while (current) {
+    if (current.name && /^\d{2}D\d{2}N\d$/.test(current.name)) return current.name;
+    current = current.parent;
+  }
+  return null;
+}
+
+/* ──────────────────────────────────────────────
+   Pre-compute the CB allocation per address.
+   Each product occupies ceil(saldo/qtdporcx) boxes.
+   Products in the same address stack sequentially
+   starting from CB11, up to max CB35 (25 slots).
+   Returns a Map: address → { totalOccupied, ranges: [{ productId, from, to }] }
+   ────────────────────────────────────────────── */
+function buildAddressAllocation(products) {
+  const byAddress = {};
+  products.forEach((p) => {
+    if (!byAddress[p.cubo]) byAddress[p.cubo] = [];
+    byAddress[p.cubo].push(p);
+  });
+
+  const allocation = {};
+  Object.entries(byAddress).forEach(([address, prods]) => {
+    let cursor = 11; // first box slot
+    const ranges = [];
+    prods.forEach((p) => {
+      const boxes = Math.min(Math.ceil(Number(p.saldo) / Number(p.qtdporcx)), 25);
+      const from = cursor;
+      const to = Math.min(cursor + boxes - 1, 35); // CB35 is max
+      ranges.push({ productId: p.id, from, to });
+      cursor = to + 1;
+    });
+    allocation[address] = {
+      totalOccupied: Math.min(cursor - 11, 25),
+      ranges,
+    };
+  });
+  return allocation;
+}
+
+const ADDRESS_ALLOCATION = buildAddressAllocation(PRODUCTS);
+
+/* ──────────────────────────────────────────────
+   3D Rack Model — loads estoque.glb and highlights CBs
+   ────────────────────────────────────────────── */
+function RackModel({ highlightedProduct }) {
   const { scene } = useGLTF("/estoque.glb");
   const modelRef = useRef();
   const materialsRef = useRef({});
@@ -65,12 +140,9 @@ function RackModel({ highlightedCubo }) {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-        const parentName = child.parent?.name || child.name;
         if (!materialsRef.current[child.uuid]) {
           materialsRef.current[child.uuid] = {
             originalColor: child.material.color.clone(),
-            parentName,
-            meshName: child.name,
           };
         }
       }
@@ -81,19 +153,62 @@ function RackModel({ highlightedCubo }) {
     pulseRef.current += delta * 3;
     const lerpSpeed = delta * 5;
 
+    const highlightedCubo = highlightedProduct?.cubo;
+    const highlightedId = highlightedProduct?.id;
+
     clonedScene.traverse((child) => {
       if (child.isMesh && materialsRef.current[child.uuid]) {
         const info = materialsRef.current[child.uuid];
-        const isCubo =
-          child.name?.toUpperCase().includes(highlightedCubo?.toUpperCase()) ||
-          child.parent?.name?.toUpperCase().includes(highlightedCubo?.toUpperCase());
+        const isCB = child.name?.toUpperCase().startsWith("CB");
 
-        // Enable transparency on the material
+        let cbIdx = 0;
+        let parentAddr = null;
+        if (isCB) {
+          const numStr = child.name.replace(/^CB/i, '');
+          if (numStr.length > 2) {
+            cbIdx = parseInt(numStr.slice(0, -3), 10); // strip 3-digit suffix
+          } else {
+            cbIdx = parseInt(numStr, 10);
+          }
+          parentAddr = getParentAddress(child);
+        }
+
+        // CB1-10 are pallets → always visible, never highlighted
+        const isPallet = isCB && cbIdx >= 1 && cbIdx <= 10;
+
+        // CB11-35 are box slots → check if occupied
+        const isBoxSlot = isCB && cbIdx >= 11 && cbIdx <= 35;
+        let isOccupied = false;
+        let isHighlightedProductBox = false;
+
+        if (isBoxSlot && parentAddr) {
+          const alloc = ADDRESS_ALLOCATION[parentAddr];
+          if (alloc) {
+            for (const range of alloc.ranges) {
+              if (cbIdx >= range.from && cbIdx <= range.to) {
+                isOccupied = true;
+                if (highlightedId === range.productId) {
+                  isHighlightedProductBox = true;
+                }
+                break;
+              }
+            }
+          }
+        }
+
+        // Unoccupied box slots → hide them (opacity 0)
+        const isEmptySlot = isBoxSlot && !isOccupied;
+
         child.material.transparent = true;
         child.material.side = THREE.FrontSide;
 
-        if (highlightedCubo && isCubo) {
-          // Highlighted cube — full orange glow, writes to depth
+        if (isEmptySlot) {
+          // Empty box slot → invisible
+          child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 0, lerpSpeed);
+          child.material.depthWrite = false;
+          child.renderOrder = -1;
+        } else if (highlightedCubo && isHighlightedProductBox && parentAddr === highlightedCubo) {
+          // THIS product's boxes in the highlighted address → orange glow
           const pulse = 0.85 + Math.sin(pulseRef.current) * 0.15;
           child.material.color.set("#FF9F0A");
           child.material.emissive = new THREE.Color("#FF6B00");
@@ -104,15 +219,15 @@ function RackModel({ highlightedCubo }) {
           child.material.depthWrite = true;
           child.renderOrder = 2;
         } else if (highlightedCubo) {
-          // Non-highlighted objects — truly transparent, no depth blocking
+          // Non-highlighted objects → semi-transparent
           child.material.color.copy(info.originalColor);
           child.material.emissive = new THREE.Color("#000000");
           child.material.emissiveIntensity = 0;
-          child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 0.65, lerpSpeed);
+          child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 0.7, lerpSpeed);
           child.material.depthWrite = false;
           child.renderOrder = 0;
         } else {
-          // No highlight active — restore fully
+          // No highlight active → restore fully (occupied boxes always visible)
           child.material.color.copy(info.originalColor);
           child.material.emissive = new THREE.Color("#000000");
           child.material.emissiveIntensity = 0;
@@ -134,14 +249,14 @@ function RackModel({ highlightedCubo }) {
 /* ──────────────────────────────────────────────
    Scene
    ────────────────────────────────────────────── */
-function Scene({ highlightedCubo }) {
+function Scene({ highlightedProduct }) {
   return (
     <>
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 8, 5]} intensity={1.4} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
       <directionalLight position={[-3, 4, -3]} intensity={0.5} />
       <pointLight position={[0, 5, 5]} intensity={0.4} color="#FFFFFF" />
-      <RackModel highlightedCubo={highlightedCubo} />
+      <RackModel highlightedProduct={highlightedProduct} />
       <ContactShadows position={[0, -0.01, 0]} opacity={0.4} scale={12} blur={2.5} far={6} />
       <Environment preset="city" />
       <OrbitControls enablePan={false} minDistance={3} maxDistance={12} minPolarAngle={Math.PI / 6} maxPolarAngle={Math.PI / 2.2} target={[0, 0, 0]} />
@@ -154,7 +269,7 @@ function Scene({ highlightedCubo }) {
    ────────────────────────────────────────────── */
 export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [highlightedCubo, setHighlightedCubo] = useState(null);
+  const [highlightedProduct, setHighlightedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [locateAnimation, setLocateAnimation] = useState(false);
@@ -179,14 +294,14 @@ export default function Home() {
 
   function handleLocate() {
     if (!selectedProduct) return;
-    setHighlightedCubo(selectedProduct.cubo);
+    setHighlightedProduct(selectedProduct);
     setLocateAnimation(true);
     setTimeout(() => setLocateAnimation(false), 400);
   }
 
   function handleClear() {
     setSelectedProduct(null);
-    setHighlightedCubo(null);
+    setHighlightedProduct(null);
     setSearchTerm("");
   }
 
@@ -194,7 +309,7 @@ export default function Home() {
     setSelectedProduct(product);
     setSearchTerm("");
     setIsDropdownOpen(false);
-    setHighlightedCubo(null);
+    setHighlightedProduct(null);
   }
 
   const cuboProducts = {};
@@ -228,11 +343,11 @@ export default function Home() {
           </div>
 
           <div className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold tracking-wide-ios shrink-0 ml-2 ${
-            highlightedCubo
+            highlightedProduct
               ? "bg-maint-badge text-ios-orange"
               : "bg-complete-badge text-ios-green"
           }`}>
-            {highlightedCubo ? `📍 ${highlightedCubo}` : "PRONTO"}
+            {highlightedProduct ? `📍 ${highlightedProduct.cubo}` : "PRONTO"}
           </div>
         </div>
       </header>
@@ -245,24 +360,24 @@ export default function Home() {
           style={{ background: "transparent", touchAction: "none" }}
           gl={{ antialias: true, alpha: true }}
         >
-          <Scene highlightedCubo={highlightedCubo} />
+          <Scene highlightedProduct={highlightedProduct} />
         </Canvas>
 
         {/* Gradient overlay bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-[60px] sm:h-[100px] gradient-fade-up pointer-events-none z-[2]" />
 
         {/* Cubo info card */}
-        {highlightedCubo && (
+        {highlightedProduct && (
           <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-[5] glass-blur rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 border border-border-card min-w-[160px] sm:min-w-[200px] max-w-[calc(100vw-24px)] sm:max-w-none"
             style={{ background: "rgba(44, 44, 46, 0.85)" }}
           >
             <div className="flex items-center gap-2">
               <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-ios-orange glow-orange" />
-              <span className="text-[13px] sm:text-[15px] font-semibold text-ios-orange">{highlightedCubo}</span>
+              <span className="text-[13px] sm:text-[15px] font-semibold text-ios-orange">{highlightedProduct.cubo}</span>
             </div>
             <div className="h-px bg-border-subtle my-2 sm:my-2.5" />
             <div className="flex flex-col gap-1">
-              {cuboProducts[highlightedCubo]?.map((p) => (
+              {cuboProducts[highlightedProduct.cubo]?.map((p) => (
                 <div
                   key={p.id}
                   className={`flex justify-between items-center gap-2 sm:gap-3 rounded-lg px-1.5 sm:px-2 py-1 sm:py-1.5 ${
@@ -359,11 +474,11 @@ export default function Home() {
 
             <button
               onClick={handleClear}
-              disabled={!highlightedCubo}
+              disabled={!highlightedProduct}
               className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl sm:rounded-[14px] text-[15px] sm:text-base font-semibold bg-ios-red/10 text-ios-red border border-ios-red/20 tracking-btn transition-all duration-250 active:scale-[0.97]"
               style={{
-                opacity: highlightedCubo ? 1 : 0.4,
-                cursor: highlightedCubo ? "pointer" : "not-allowed",
+                opacity: highlightedProduct ? 1 : 0.4,
+                cursor: highlightedProduct ? "pointer" : "not-allowed",
               }}
             >
               <svg width={isMobile ? 18 : 20} height={isMobile ? 18 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
