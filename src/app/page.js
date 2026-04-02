@@ -55,7 +55,7 @@ function useIsMobile(breakpoint = 640) {
      │    ├─ CB1..CB10   → pallet structure (always visible)
      │    ├─ CB11..CB35  → 25 box slots
      ├─ 05D22N2, 05D22N3, 05D23N1-N3, 05D24N1-N3 (same pattern)
-     ├─ ESTRUTURA [mesh] (rack)
+     ├─ ESTRUTURA [group, 24 mesh children] → forced to light gray (#D1D1D6)
      └─ FLOOR [mesh]
    ────────────────────────────────────────────── */
 
@@ -159,6 +159,27 @@ function RackModel({ highlightedProduct }) {
     clonedScene.traverse((child) => {
       if (child.isMesh && materialsRef.current[child.uuid]) {
         const info = materialsRef.current[child.uuid];
+
+        // ── ESTRUTURA detection: mesh name or ancestor group ──
+        const isEstrutura =
+          child.name?.toUpperCase().startsWith("ESTRUTURA") ||
+          hasAncestorNamed(child, "ESTRUTURA");
+
+        if (isEstrutura) {
+          // Force light gray for all ESTRUTURA parts
+          child.material.transparent = true;
+          child.material.side = THREE.FrontSide;
+          child.material.color.set("#B3B3BA");
+          child.material.emissive = new THREE.Color("#000000");
+          child.material.emissiveIntensity = 0;
+          child.material.roughness = 0.5;
+          child.material.metalness = 0.3;
+          child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 1, lerpSpeed);
+          child.material.depthWrite = true;
+          child.renderOrder = 0;
+          return; // skip remaining logic for ESTRUTURA
+        }
+
         const isCB = child.name?.toUpperCase().startsWith("CB");
 
         let cbIdx = 0;
@@ -458,17 +479,13 @@ export default function Home() {
             <button
               onClick={handleLocate}
               disabled={!selectedProduct}
-              className="flex-1 flex items-center justify-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl sm:rounded-[14px] text-[15px] sm:text-base font-semibold bg-[#FF6600] text-white tracking-btn transition-all duration-250 active:scale-[0.97]"
+              className="flex-1 flex items-center justify-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-[14px] text-[15px] sm:text-base font-semibold bg-[#FF6600] text-white tracking-btn transition-all duration-250 active:scale-[0.97]"
               style={{
                 opacity: selectedProduct ? 1 : 0.4,
                 transform: locateAnimation ? "scale(0.96)" : "scale(1)",
                 cursor: selectedProduct ? "pointer" : "not-allowed",
               }}
             >
-              <svg width={isMobile ? 18 : 20} height={isMobile ? 18 : 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
               <span>Localizar</span>
             </button>
 
