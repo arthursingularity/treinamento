@@ -79,25 +79,46 @@ function RackModel({ highlightedCubo }) {
 
   useFrame((_, delta) => {
     pulseRef.current += delta * 3;
+    const lerpSpeed = delta * 5;
+
     clonedScene.traverse((child) => {
       if (child.isMesh && materialsRef.current[child.uuid]) {
         const info = materialsRef.current[child.uuid];
         const isCubo =
           child.name?.toUpperCase().includes(highlightedCubo?.toUpperCase()) ||
           child.parent?.name?.toUpperCase().includes(highlightedCubo?.toUpperCase());
+
+        // Enable transparency on the material
+        child.material.transparent = true;
+        child.material.side = THREE.FrontSide;
+
         if (highlightedCubo && isCubo) {
+          // Highlighted cube — full orange glow, writes to depth
           const pulse = 0.85 + Math.sin(pulseRef.current) * 0.15;
           child.material.color.set("#FF9F0A");
           child.material.emissive = new THREE.Color("#FF6B00");
           child.material.emissiveIntensity = 0.3 * pulse;
           child.material.roughness = 0.3;
           child.material.metalness = 0.6;
-        } else {
+          child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 1, lerpSpeed);
+          child.material.depthWrite = true;
+          child.renderOrder = 2;
+        } else if (highlightedCubo) {
+          // Non-highlighted objects — truly transparent, no depth blocking
           child.material.color.copy(info.originalColor);
           child.material.emissive = new THREE.Color("#000000");
           child.material.emissiveIntensity = 0;
-          child.material.roughness = child.material.roughness || 0.5;
-          child.material.metalness = child.material.metalness || 0.5;
+          child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 0.65, lerpSpeed);
+          child.material.depthWrite = false;
+          child.renderOrder = 0;
+        } else {
+          // No highlight active — restore fully
+          child.material.color.copy(info.originalColor);
+          child.material.emissive = new THREE.Color("#000000");
+          child.material.emissiveIntensity = 0;
+          child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, 1, lerpSpeed);
+          child.material.depthWrite = true;
+          child.renderOrder = 0;
         }
       }
     });
