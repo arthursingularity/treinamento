@@ -2,76 +2,14 @@
 import { useState } from "react";
 import { Add, TrashCan, Carbon, Play, PlayFilledAlt } from '@carbon/icons-react';
 
-/* ═══════════════════════════════════════════
-   IRON LOCK ERP — DESIGN SYSTEM TOKENS
-   Brand: #FF6600 · #333333 · #FFFFFF · #DADADA
-   ═══════════════════════════════════════════ */
+import { tokens as T } from "../../lib/tokens";
 
-const T = {
-  colors: {
-    brand: { primary: "#FF6600", primaryHover: "#E65C00", primaryActive: "#CC5200", secondary: "#333333", secondaryHover: "#444444", white: "#FFFFFF", light: "#DADADA" },
-    bg: { page: "#F7F7F8", surface: "#FFFFFF", surfaceHover: "#FAFAFA", muted: "#F0F0F2", dark: "#1A1A1A", darkSurface: "#242424" },
-    fg: { default: "#1A1A1A", secondary: "#555555", muted: "#888888", disabled: "#BBBBBB", inverse: "#FFFFFF", accent: "#FF6600" },
-    gray: { 50: "#FAFAFA", 100: "#F5F5F5", 200: "#EAEAEC", 300: "#DADADA", 400: "#ACACAC", 500: "#888888", 600: "#666666", 700: "#444444", 800: "#333333", 900: "#1A1A1A" },
-    semantic: { success: "#12A150", successBg: "#EDFCF2", warning: "#E8930C", warningBg: "#FFF8EB", error: "#E5383B", errorBg: "#FFF0F0", info: "#0070F3", infoBg: "#EBF5FF" },
-    border: { default: "#E2E2E5", hover: "#CCCCCC", focus: "#FF6600", error: "#E5383B", strong: "#333333" },
-  },
-  font: {
-    family: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    mono: "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-    sizes: { xs: 11, sm: 12, label: 13, bodySm: 14, body: 15, subtitle: 16, titleSm: 18, title: 20, headingSm: 24, heading: 28, displaySm: 32, display: 40 },
-    weights: { regular: 400, medium: 500, semibold: 600, bold: 700 },
-    lineHeights: { tight: 1.15, snug: 1.25, normal: 1.5, relaxed: 1.6 },
-    letterSpacing: { tight: "-0.03em", slight: "-0.015em", normal: "0", wide: "0.04em", caps: "0.08em" },
-  },
-  spacing: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96],
-  radius: { none: 0, sm: 4, base: 6, md: 8, lg: 12, xl: 16, full: 9999 },
-  shadows: {
-    xs: "0 1px 2px rgba(0,0,0,0.05)",
-    sm: "0 2px 4px rgba(0,0,0,0.06)",
-    md: "0 4px 12px rgba(0,0,0,0.08)",
-    lg: "0 8px 24px rgba(0,0,0,0.1)",
-    xl: "0 16px 48px rgba(0,0,0,0.12)",
-    card: "0 1px 3px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.06)",
-    focus: "0 0 0 2px #fff, 0 0 0 4px #FF6600",
-  },
-  transitions: { fast: "150ms ease", base: "200ms ease", slow: "300ms ease-in-out" },
-};
-
-/* ── Helpers ── */
-const Swatch = ({ color, name, border }) => (
-  <div className="flex items-center gap-2.5">
-    <div
-      className={`w-10 h-10 rounded-md shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.05)] ${border ? "border border-[#E2E2E5]" : ""
-        }`}
-      style={{ backgroundColor: color }}
-    />
-    <div>
-      <div className="text-[14px] font-medium text-[#1A1A1A]">{name}</div>
-      <div className="text-[12px] font-mono text-[#888888]">{color}</div>
-    </div>
-  </div>
-);
-
-const Section = ({ title, children }) => (
-  <section className="mb-12">
-    <div className="flex items-center gap-3 mb-5">
-      <h2 className="text-[24px] font-bold text-[#1A1A1A] tracking-[-0.03em] m-0">
-        {title}
-      </h2>
-      <div className="flex-1 h-px bg-[#E2E2E5]" />
-    </div>
-    {children}
-  </section>
-);
-
-const Card = ({ children, className = "" }) => (
-  <div
-    className={`bg-white rounded-xl border border-[#E2E2E5] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_6px_16px_rgba(0,0,0,0.06)] ${className}`}
-  >
-    {children}
-  </div>
-);
+import Section from "../../components/design-system/Section";
+import Swatch from "../../components/design-system/Swatch";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Badge from "../../components/ui/Badge";
 
 /* ═══ PAGE ═══ */
 export default function DesignSystemPage() {
@@ -105,11 +43,13 @@ export default function DesignSystemPage() {
           <h1 className="text-[40px] font-bold text-[#1A1A1A] tracking-[-0.03em] leading-[1.15] m-0">
             Design System
           </h1>
-          <Add size={24} />
-          <TrashCan size={32} />
-          <Carbon size={20} fill="blue" />
-          <Play size={20} fill="blue" />
-          <PlayFilledAlt size={20} className="fill-orange-500 hover:fill-orange-600"/>
+          <div className="flex items-center gap-2 mt-4">
+            <Add size={24} />
+            <TrashCan size={32} />
+            <Carbon size={20} fill="blue" />
+            <Play size={20} fill="blue" />
+            <PlayFilledAlt size={20} className="fill-orange-500 hover:fill-orange-600"/>
+          </div>
           <p className="text-[16px] text-[#555555] leading-[1.6] mt-3 max-w-[600px]">
             Tokens e componentes para o ERP da fábrica multinacional de cadeados e fechaduras. Projetado para
             transmitir autoridade, precisão e tecnologia.
@@ -291,77 +231,32 @@ export default function DesignSystemPage() {
               Botões
             </div>
             <div className="flex gap-3 flex-wrap mb-6">
-              {[
-                {
-                  label: "Primário",
-                  cls: "bg-[#FF6600] text-white hover:bg-[#E65C00]",
-                },
-                {
-                  label: "Secundário",
-                  cls: "bg-[#333333] text-white hover:bg-[#444444]",
-                },
-                {
-                  label: "Outline",
-                  cls: "bg-transparent text-[#FF6600] border-[1.5px] border-[#FF6600] hover:bg-[#FF6600]/10",
-                },
-                {
-                  label: "Ghost",
-                  cls: "bg-transparent text-[#1A1A1A] border border-[#E2E2E5] hover:bg-[#F0F0F2]",
-                },
-                {
-                  label: "Danger",
-                  cls: "bg-[#E5383B] text-white hover:bg-[#E5383B]/90",
-                },
-                {
-                  label: "Disabled",
-                  cls: "bg-[#F0F0F2] text-[#BBBBBB] cursor-not-allowed",
-                },
-              ].map((b, i) => (
-                <button
-                  key={i}
-                  className={`px-5 py-2.5 rounded-md text-[14px] font-semibold transition-all duration-150 tracking-[-0.015em] ${b.cls}`}
-                >
-                  {b.label}
-                </button>
-              ))}
+              <Button variant="primary">Primário</Button>
+              <Button variant="secondary">Secundário</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="danger">Danger</Button>
+              <Button variant="disabled" disabled>Disabled</Button>
             </div>
             <div className="h-px bg-[#E2E2E5] mb-6" />
             <div className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#888888] mb-4">
               Inputs
             </div>
             <div className="flex gap-4 flex-wrap mb-6">
-              <input
-                placeholder="Input padrão"
-                className="px-3.5 py-2.5 rounded-md border border-[#E2E2E5] text-[14px] outline-none bg-white text-[#1A1A1A] w-[220px] transition-all duration-150"
-              />
-              <input
-                placeholder="Com foco"
-                className="px-3.5 py-2.5 rounded-md border-2 border-[#FF6600] text-[14px] outline-none bg-white text-[#1A1A1A] w-[220px] shadow-[0_0_0_3px_rgba(255,102,0,0.1)]"
-              />
-              <input
-                placeholder="Erro"
-                className="px-3.5 py-2.5 rounded-md border border-[#E5383B] text-[14px] outline-none bg-[#FFF0F0] text-[#1A1A1A] w-[220px]"
-              />
+              <Input placeholder="Input padrão" />
+              <Input placeholder="Com foco" hasFocus={true} />
+              <Input placeholder="Erro" hasError={true} />
             </div>
             <div className="h-px bg-[#E2E2E5] mb-6" />
             <div className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#888888] mb-4">
               Badges
             </div>
             <div className="flex gap-2.5 flex-wrap">
-              {[
-                { label: "Ativo", cls: "bg-[#EDFCF2] text-[#12A150]" },
-                { label: "Pendente", cls: "bg-[#FFF8EB] text-[#E8930C]" },
-                { label: "Erro", cls: "bg-[#FFF0F0] text-[#E5383B]" },
-                { label: "Info", cls: "bg-[#EBF5FF] text-[#0070F3]" },
-                { label: "Produção", cls: "bg-[#FF6600]/10 text-[#FF6600]" },
-              ].map((b, i) => (
-                <span
-                  key={i}
-                  className={`px-3 py-1 rounded-full text-[12px] font-semibold ${b.cls}`}
-                >
-                  {b.label}
-                </span>
-              ))}
+              <Badge variant="success">Ativo</Badge>
+              <Badge variant="warning">Pendente</Badge>
+              <Badge variant="error">Erro</Badge>
+              <Badge variant="info">Info</Badge>
+              <Badge variant="brand">Produção</Badge>
             </div>
           </Card>
         </Section>

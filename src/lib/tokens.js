@@ -1,0 +1,30 @@
+export const tokens = {
+  colors: {
+    brand: { primary: "#FF6600", primaryHover: "#E65C00", primaryActive: "#CC5200", secondary: "#333333", secondaryHover: "#444444", white: "#FFFFFF", light: "#DADADA" },
+    bg: { page: "#F7F7F8", surface: "#FFFFFF", surfaceHover: "#FAFAFA", muted: "#F0F0F2", dark: "#1A1A1A", darkSurface: "#242424" },
+    fg: { default: "#1A1A1A", secondary: "#555555", muted: "#888888", disabled: "#BBBBBB", inverse: "#FFFFFF", accent: "#FF6600" },
+    gray: { 50: "#FAFAFA", 100: "#F5F5F5", 200: "#EAEAEC", 300: "#DADADA", 400: "#ACACAC", 500: "#888888", 600: "#666666", 700: "#444444", 800: "#333333", 900: "#1A1A1A" },
+    semantic: { success: "#12A150", successBg: "#EDFCF2", warning: "#E8930C", warningBg: "#FFF8EB", error: "#E5383B", errorBg: "#FFF0F0", info: "#0070F3", infoBg: "#EBF5FF" },
+    border: { default: "#E2E2E5", hover: "#CCCCCC", focus: "#FF6600", error: "#E5383B", strong: "#333333" },
+  },
+  font: {
+    family: "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    mono: "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+    sizes: { xs: 11, sm: 12, label: 13, bodySm: 14, body: 15, subtitle: 16, titleSm: 18, title: 20, headingSm: 24, heading: 28, displaySm: 32, display: 40 },
+    weights: { regular: 400, medium: 500, semibold: 600, bold: 700 },
+    lineHeights: { tight: 1.15, snug: 1.25, normal: 1.5, relaxed: 1.6 },
+    letterSpacing: { tight: "-0.03em", slight: "-0.015em", normal: "0", wide: "0.04em", caps: "0.08em" },
+  },
+  spacing: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96],
+  radius: { none: 0, sm: 4, base: 6, md: 8, lg: 12, xl: 16, full: 9999 },
+  shadows: {
+    xs: "0 1px 2px rgba(0,0,0,0.05)",
+    sm: "0 2px 4px rgba(0,0,0,0.06)",
+    md: "0 4px 12px rgba(0,0,0,0.08)",
+    lg: "0 8px 24px rgba(0,0,0,0.1)",
+    xl: "0 16px 48px rgba(0,0,0,0.12)",
+    card: "0 1px 3px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.06)",
+    focus: "0 0 0 2px #fff, 0 0 0 4px #FF6600",
+  },
+  transitions: { fast: "150ms ease", base: "200ms ease", slow: "300ms ease-in-out" },
+};
